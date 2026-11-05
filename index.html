@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Motos Corrientes</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{--ink:#22262a;--paper:#f7f6f2;--line:#d9d7cf;--moto:#f2b705;--med:#1f6fd1;--mute:#6b6f73}
+@media (prefers-color-scheme:dark){:root{--ink:#eceae4;--paper:#1f2327;--line:#363b40;--mute:#9aa0a6}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--paper);display:flex;flex-direction:column}
+header{padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;display:flex;gap:8px;border-bottom:1px solid var(--line);background:var(--paper)}
+input{flex:1;min-width:0;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:inherit}
+button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:10px 14px;background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible,a:focus-visible,li:focus-visible{outline:2px solid var(--med);outline-offset:2px}
+#map{flex:1 1 55%;min-height:200px}
+#list{flex:1 1 45%;overflow:auto;margin:0;padding:0 0 env(safe-area-inset-bottom,0px);list-style:none;border-top:1px solid var(--line)}
+li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+li b{font-weight:600}.sub{color:var(--mute);font-size:13px}
+.dot{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px var(--ink)}
+.go{margin-left:auto;font-size:13px;color:var(--med);text-decoration:none;white-space:nowrap;padding:6px}
+.me{width:16px;height:16px;border-radius:50%;background:#e5484d;border:3px solid #fff;box-shadow:0 0 0 2px #e5484d55}
+</style></head><body>
+<header><input id="q" type="search" placeholder="Buscar calle (ej. San Martín)" aria-label="Buscar calle"><button id="loc">Cerca mío</button></header>
+<div id="map"></div><ul id="list"></ul>
+<script>
+const D=[{"n":"San Martín 1100","m":0,"a":-27.469671,"o":-58.836633},{"n":"San Martín 1000","m":0,"a":-27.469519,"o":-58.837985},{"n":"San Martín 1200","m":0,"a":-27.469805,"o":-58.835474},{"n":"San Martín 1300","m":0,"a":-27.469957,"o":-58.834402},{"n":"Córdoba 1000","m":0,"a":-27.469767,"o":-58.834831},{"n":"Córdoba 100","m":0,"a":-27.470947,"o":-58.834895},{"n":"Bolivar 1200","m":0,"a":-27.471194,"o":-58.83511},{"n":"Mendoza 1200","m":0,"a":-27.471137,"o":-58.835936},{"n":"Bolivar 1100","m":1,"a":-27.471033,"o":-58.836161},{"n":"San Juan 1100","m":1,"a":-27.470728,"o":-58.837116},{"n":"San Juan 1100","m":1,"a":-27.469595,"o":-58.837019},{"n":"San Juan 900","m":0,"a":-27.468472,"o":-58.836923},{"n":"H. Irigoyen 1000","m":1,"a":-27.468691,"o":-58.837062},{"n":"Catamarca 800","m":0,"a":-27.466898,"o":-58.832926},{"n":"Catamarca 700","m":0,"a":-27.465784,"o":-58.832797},{"n":"Córdoba 600","m":1,"a":-27.465394,"o":-58.834192},{"n":"25 de Mayo 1400","m":1,"a":-27.464698,"o":-58.832561},{"n":"25 de Mayo 1200","m":0,"a":-27.464555,"o":-58.834117},{"n":"Mendoza 600","m":1,"a":-27.464517,"o":-58.835233},{"n":"Mendoza 500","m":0,"a":-27.463308,"o":-58.835115},{"n":"Quintana 1100","m":0,"a":-27.462956,"o":-58.836263},{"n":"San Juan 500","m":0,"a":-27.464051,"o":-58.836531},{"n":"25 de Mayo 1000","m":0,"a":-27.464308,"o":-58.836681},{"n":"Quintana 1000","m":0,"a":-27.462832,"o":-58.837529},{"n":"San Lorenzo 700","m":0,"a":-27.466716,"o":-58.831724},{"n":"San Lorenzo 600","m":0,"a":-27.465631,"o":-58.831585},{"n":"C. Pellegrini 1500","m":0,"a":-27.465717,"o":-58.831359},{"n":"Santa Fe 700","m":0,"a":-27.466811,"o":-58.830405},{"n":"Santa Fe 600","m":0,"a":-27.465706,"o":-58.830308},{"n":"España 900","m":0,"a":-27.468462,"o":-58.829165},{"n":"España 800","m":0,"a":-27.46721,"o":-58.829021},{"n":"San Martín 1400","m":0,"a":-27.470148,"o":-58.831779},{"n":"Belgrano 1700","m":0,"a":-27.472682,"o":-58.829505},{"n":"Belgrano 1800","m":0,"a":-27.472797,"o":-58.828239},{"n":"Belgrano 1600","m":0,"a":-27.47253,"o":-58.830814},{"n":"Boivar 1500","m":0,"a":-27.471578,"o":-58.831178},{"n":"Moreno 1300","m":0,"a":-27.473606,"o":-58.833855},{"n":"Moreno 1200","m":0,"a":-27.473454,"o":-58.835223},{"n":"Mendoza 1400","m":0,"a":-27.473453,"o":-58.836141},{"n":"Mendoza 1500","m":0,"a":-27.474614,"o":-58.836237},{"n":"Córdoba 1400","m":0,"a":-27.47439,"o":-58.835341},{"n":"San Juan 1300","m":0,"a":-27.472315,"o":-58.837337},{"n":"Moreno 1100","m":0,"a":-27.473367,"o":-58.836414},{"n":"Salta 1300","m":0,"a":-27.472658,"o":-58.839762},{"n":"Salta 1500","m":0,"a":-27.474904,"o":-58.839869},{"n":"San Lorenzo 1400","m":0,"a":-27.474657,"o":-58.832648},{"n":"H. Irigoyen 1800","m":0,"a":-27.469532,"o":-58.828196},{"n":"Jujuy 1000","m":0,"a":-27.469627,"o":-58.82796},{"n":"Paraguay 900","m":0,"a":-27.469465,"o":-58.826849},{"n":"Jujuy 1100","m":0,"a":-27.470798,"o":-58.828126},{"n":"Roca 900","m":0,"a":-27.469037,"o":-58.822724},{"n":"Placido Martines 1300","m":0,"a":-27.463547,"o":-58.832771},{"n":"25 de Mayo 500","m":0,"a":-27.463604,"o":-58.840067},{"n":"Tucuman 600","m":0,"a":-27.464689,"o":-58.841655},{"n":"Catamarca 1200","m":0,"a":-27.471712,"o":-58.83341},{"n":"San Lorenzo 900 (plaza)","m":0,"a":-27.468625,"o":-58.831758},{"n":"C. Pellegrini 700","m":0,"a":-27.464804,"o":-58.841268},{"n":"C. Pellegrini 800","m":0,"a":-27.464994,"o":-58.839294},{"n":"C. Pellegrini 400","m":0,"a":-27.464556,"o":-58.844852},{"n":"Tucuman 1100","m":0,"a":-27.470211,"o":-58.842041},{"n":"Bolivar 500","m":0,"a":-27.470572,"o":-58.842363},{"n":"San Martín 1000","m":0,"a":-27.469439,"o":-58.839152},{"n":"Quintana 1300","m":0,"a":-27.463183,"o":-58.833663},{"n":"C. Pellegrini 400 (sector P. Camba Cua)","m":0,"a":-27.464716,"o":-58.845003},{"n":"Placido Martinez 1200","m":0,"a":-27.462327,"o":-58.833952},{"n":"Córdoba 300","m":0,"a":-27.462098,"o":-58.833824},{"n":"Placido Martinez 1300","m":0,"a":-27.462469,"o":-58.83259},{"n":"Placido Martinez 800","m":0,"a":-27.46156,"o":-58.839033},{"n":"C. Pellegrini 1200","m":0,"a":-27.465397,"o":-58.83524},{"n":"Mendoza 700","m":0,"a":-27.465563,"o":-58.835326},{"n":"Junin 800","m":0,"a":-27.46721,"o":-58.840325},{"n":"Moreno 900","m":0,"a":-27.47326,"o":-58.83745},{"n":"Rivadavia 1600","m":0,"a":-27.47483,"o":-58.831115},{"n":"Rivadavia 1700","m":0,"a":-27.474992,"o":-58.829489},{"n":"H. Irigoyen 900","m":0,"a":-27.469374,"o":-58.828003},{"n":"Belgrano 2100","m":0,"a":-27.473231,"o":-58.824469},{"n":"Bolivar 2100","m":0,"a":-27.472222,"o":-58.823766},{"n":"Av Artigas 1100","m":0,"a":-27.471767,"o":-58.818643},{"n":"San Martín 600","m":0,"a":-27.469129,"o":-58.842978},{"n":"Lavalle 1200 (dársena Mercado)","m":0,"a":-27.477073,"o":-58.836442},{"n":"Lisandro Segovia 1700","m":0,"a":-27.477159,"o":-58.835412},{"n":"Av. Tte. Ibañez Entre Av Sarmiento Y Av Maipu","m":0,"a":-27.483865,"o":-58.827723},{"n":"Av La Paz 2400","m":0,"a":-27.486577,"o":-58.825554},{"n":"Costanera Sur Entre Lavalle Y Gral Paz","m":0,"a":-27.4751,"o":-58.855507},{"n":"Costanera Sur Entre Gral Paz Y Necochea","m":0,"a":-27.476169,"o":-58.85526},{"n":"Santa Fe 1000","m":0,"a":-27.469532,"o":-58.830792}];
+const map=L.map('map',{zoomControl:true}).setView([-27.4675,-58.8335],15);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+const col=m=>m?'#1f6fd1':'#f2b705';
+D.forEach(p=>{p.k=L.circleMarker([p.a,p.o],{radius:9,color:'#fff',weight:2,fillColor:col(p.m),fillOpacity:1}).addTo(map).bindPopup(`<b>${p.n}</b><br>${p.m?'Estacionamiento medido':'Estacionamiento de motos'} · 10 m`)});
+let me=null,meMark=null;
+const dist=(a,b,c,d)=>{const r=Math.PI/180,x=(d-b)*r*Math.cos((a+c)/2*r),y=(c-a)*r;return Math.hypot(x,y)*6371000};
+function render(){
+  const t=document.getElementById('q').value.trim().toLowerCase();
+  let items=D.filter(p=>p.n.toLowerCase().includes(t));
+  if(me){items.forEach(p=>p.d=dist(me.lat,me.lng,p.a,p.o));items.sort((x,y)=>x.d-y.d)}
+  else items.sort((x,y)=>x.n.localeCompare(y.n,'es',{numeric:true}));
+  D.forEach(p=>{items.includes(p)?p.k.addTo(map):p.k.remove()});
+  const ul=document.getElementById('list');ul.innerHTML='';
+  if(!items.length){ul.innerHTML='<li>No hay estacionamientos con ese nombre. Probá con otra calle.</li>';return}
+  items.forEach(p=>{
+    const li=document.createElement('li');li.tabIndex=0;
+    const d=p.d!=null?(p.d<1000?Math.round(p.d)+' m':(p.d/1000).toFixed(1)+' km'):'';
+    li.innerHTML=`<span class="dot" style="background:${col(p.m)}"></span><div><b>${p.n}</b><div class="sub">${p.m?'Medido':'Motos'}${d?' · a '+d:''}</div></div><a class="go" href="https://www.google.com/maps/dir/?api=1&destination=${p.a},${p.o}&travelmode=driving" target="_blank" rel="noopener">Cómo llegar</a>`;
+    const open=()=>{map.setView([p.a,p.o],18);p.k.openPopup()};
+    li.onclick=e=>{if(!e.target.closest('a'))open()};
+    li.onkeydown=e=>{if(e.key==='Enter')open()};
+    ul.appendChild(li)});
+}
+document.getElementById('q').oninput=render;
+document.getElementById('loc').onclick=()=>{
+  if(!navigator.geolocation){alert('Tu navegador no permite ubicación.');return}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    me={lat:pos.coords.latitude,lng:pos.coords.longitude};
+    if(meMark)meMark.remove();
+    meMark=L.marker([me.lat,me.lng],{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[16,16]})}).addTo(map);
+    render();const n=D.map(p=>({p,d:dist(me.lat,me.lng,p.a,p.o)})).sort((a,b)=>a.d-b.d)[0].p;
+    map.fitBounds([[me.lat,me.lng],[n.a,n.o]],{padding:[50,50],maxZoom:18});
+  },()=>alert('No pude obtener tu ubicación. Revisá el permiso del navegador.'),{enableHighAccuracy:true,timeout:10000});
+};
+render();
+</script></body></html>
