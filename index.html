@@ -1,63 +1,748 @@
 <!DOCTYPE html>
-<html lang="es"><head><meta charset="utf-8">
+<html lang="es" data-theme="dark"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121417">
+<meta name="description" content="Mapa personal de estacionamientos de motos y medidos en el centro de Corrientes.">
 <title>Motos Corrientes</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='38' fill='%23f2b705' stroke='white' stroke-width='10'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>try{var t=localStorage.getItem('motos.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
-:root{--ink:#22262a;--paper:#f7f6f2;--line:#d9d7cf;--moto:#f2b705;--med:#1f6fd1;--mute:#6b6f73}
-@media (prefers-color-scheme:dark){:root{--ink:#eceae4;--paper:#1f2327;--line:#363b40;--mute:#9aa0a6}}
-*{box-sizing:border-box}html,body{height:100%;margin:0}
-body{font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--paper);display:flex;flex-direction:column}
-header{padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;display:flex;gap:8px;border-bottom:1px solid var(--line);background:var(--paper)}
-input{flex:1;min-width:0;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:inherit}
-button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:10px 14px;background:var(--ink);color:var(--paper)}
-button:focus-visible,input:focus-visible,a:focus-visible,li:focus-visible{outline:2px solid var(--med);outline-offset:2px}
-#map{flex:1 1 55%;min-height:200px}
-#list{flex:1 1 45%;overflow:auto;margin:0;padding:0 0 env(safe-area-inset-bottom,0px);list-style:none;border-top:1px solid var(--line)}
-li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer}
-li b{font-weight:600}.sub{color:var(--mute);font-size:13px}
-.dot{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px var(--ink)}
-.go{margin-left:auto;font-size:13px;color:var(--med);text-decoration:none;white-space:nowrap;padding:6px}
-.me{width:16px;height:16px;border-radius:50%;background:#e5484d;border:3px solid #fff;box-shadow:0 0 0 2px #e5484d55}
-</style></head><body>
-<header><input id="q" type="search" placeholder="Buscar calle (ej. San Martín)" aria-label="Buscar calle"><button id="loc">Cerca mío</button></header>
-<div id="map"></div><ul id="list"></ul>
-<script>
-const D=[{"n":"San Martín 1100","m":0,"a":-27.469671,"o":-58.836633},{"n":"San Martín 1000","m":0,"a":-27.469519,"o":-58.837985},{"n":"San Martín 1200","m":0,"a":-27.469805,"o":-58.835474},{"n":"San Martín 1300","m":0,"a":-27.469957,"o":-58.834402},{"n":"Córdoba 1000","m":0,"a":-27.469767,"o":-58.834831},{"n":"Córdoba 100","m":0,"a":-27.470947,"o":-58.834895},{"n":"Bolivar 1200","m":0,"a":-27.471194,"o":-58.83511},{"n":"Mendoza 1200","m":0,"a":-27.471137,"o":-58.835936},{"n":"Bolivar 1100","m":1,"a":-27.471033,"o":-58.836161},{"n":"San Juan 1100","m":1,"a":-27.470728,"o":-58.837116},{"n":"San Juan 1100","m":1,"a":-27.469595,"o":-58.837019},{"n":"San Juan 900","m":0,"a":-27.468472,"o":-58.836923},{"n":"H. Irigoyen 1000","m":1,"a":-27.468691,"o":-58.837062},{"n":"Catamarca 800","m":0,"a":-27.466898,"o":-58.832926},{"n":"Catamarca 700","m":0,"a":-27.465784,"o":-58.832797},{"n":"Córdoba 600","m":1,"a":-27.465394,"o":-58.834192},{"n":"25 de Mayo 1400","m":1,"a":-27.464698,"o":-58.832561},{"n":"25 de Mayo 1200","m":0,"a":-27.464555,"o":-58.834117},{"n":"Mendoza 600","m":1,"a":-27.464517,"o":-58.835233},{"n":"Mendoza 500","m":0,"a":-27.463308,"o":-58.835115},{"n":"Quintana 1100","m":0,"a":-27.462956,"o":-58.836263},{"n":"San Juan 500","m":0,"a":-27.464051,"o":-58.836531},{"n":"25 de Mayo 1000","m":0,"a":-27.464308,"o":-58.836681},{"n":"Quintana 1000","m":0,"a":-27.462832,"o":-58.837529},{"n":"San Lorenzo 700","m":0,"a":-27.466716,"o":-58.831724},{"n":"San Lorenzo 600","m":0,"a":-27.465631,"o":-58.831585},{"n":"C. Pellegrini 1500","m":0,"a":-27.465717,"o":-58.831359},{"n":"Santa Fe 700","m":0,"a":-27.466811,"o":-58.830405},{"n":"Santa Fe 600","m":0,"a":-27.465706,"o":-58.830308},{"n":"España 900","m":0,"a":-27.468462,"o":-58.829165},{"n":"España 800","m":0,"a":-27.46721,"o":-58.829021},{"n":"San Martín 1400","m":0,"a":-27.470148,"o":-58.831779},{"n":"Belgrano 1700","m":0,"a":-27.472682,"o":-58.829505},{"n":"Belgrano 1800","m":0,"a":-27.472797,"o":-58.828239},{"n":"Belgrano 1600","m":0,"a":-27.47253,"o":-58.830814},{"n":"Boivar 1500","m":0,"a":-27.471578,"o":-58.831178},{"n":"Moreno 1300","m":0,"a":-27.473606,"o":-58.833855},{"n":"Moreno 1200","m":0,"a":-27.473454,"o":-58.835223},{"n":"Mendoza 1400","m":0,"a":-27.473453,"o":-58.836141},{"n":"Mendoza 1500","m":0,"a":-27.474614,"o":-58.836237},{"n":"Córdoba 1400","m":0,"a":-27.47439,"o":-58.835341},{"n":"San Juan 1300","m":0,"a":-27.472315,"o":-58.837337},{"n":"Moreno 1100","m":0,"a":-27.473367,"o":-58.836414},{"n":"Salta 1300","m":0,"a":-27.472658,"o":-58.839762},{"n":"Salta 1500","m":0,"a":-27.474904,"o":-58.839869},{"n":"San Lorenzo 1400","m":0,"a":-27.474657,"o":-58.832648},{"n":"H. Irigoyen 1800","m":0,"a":-27.469532,"o":-58.828196},{"n":"Jujuy 1000","m":0,"a":-27.469627,"o":-58.82796},{"n":"Paraguay 900","m":0,"a":-27.469465,"o":-58.826849},{"n":"Jujuy 1100","m":0,"a":-27.470798,"o":-58.828126},{"n":"Roca 900","m":0,"a":-27.469037,"o":-58.822724},{"n":"Placido Martines 1300","m":0,"a":-27.463547,"o":-58.832771},{"n":"25 de Mayo 500","m":0,"a":-27.463604,"o":-58.840067},{"n":"Tucuman 600","m":0,"a":-27.464689,"o":-58.841655},{"n":"Catamarca 1200","m":0,"a":-27.471712,"o":-58.83341},{"n":"San Lorenzo 900 (plaza)","m":0,"a":-27.468625,"o":-58.831758},{"n":"C. Pellegrini 700","m":0,"a":-27.464804,"o":-58.841268},{"n":"C. Pellegrini 800","m":0,"a":-27.464994,"o":-58.839294},{"n":"C. Pellegrini 400","m":0,"a":-27.464556,"o":-58.844852},{"n":"Tucuman 1100","m":0,"a":-27.470211,"o":-58.842041},{"n":"Bolivar 500","m":0,"a":-27.470572,"o":-58.842363},{"n":"San Martín 1000","m":0,"a":-27.469439,"o":-58.839152},{"n":"Quintana 1300","m":0,"a":-27.463183,"o":-58.833663},{"n":"C. Pellegrini 400 (sector P. Camba Cua)","m":0,"a":-27.464716,"o":-58.845003},{"n":"Placido Martinez 1200","m":0,"a":-27.462327,"o":-58.833952},{"n":"Córdoba 300","m":0,"a":-27.462098,"o":-58.833824},{"n":"Placido Martinez 1300","m":0,"a":-27.462469,"o":-58.83259},{"n":"Placido Martinez 800","m":0,"a":-27.46156,"o":-58.839033},{"n":"C. Pellegrini 1200","m":0,"a":-27.465397,"o":-58.83524},{"n":"Mendoza 700","m":0,"a":-27.465563,"o":-58.835326},{"n":"Junin 800","m":0,"a":-27.46721,"o":-58.840325},{"n":"Moreno 900","m":0,"a":-27.47326,"o":-58.83745},{"n":"Rivadavia 1600","m":0,"a":-27.47483,"o":-58.831115},{"n":"Rivadavia 1700","m":0,"a":-27.474992,"o":-58.829489},{"n":"H. Irigoyen 900","m":0,"a":-27.469374,"o":-58.828003},{"n":"Belgrano 2100","m":0,"a":-27.473231,"o":-58.824469},{"n":"Bolivar 2100","m":0,"a":-27.472222,"o":-58.823766},{"n":"Av Artigas 1100","m":0,"a":-27.471767,"o":-58.818643},{"n":"San Martín 600","m":0,"a":-27.469129,"o":-58.842978},{"n":"Lavalle 1200 (dársena Mercado)","m":0,"a":-27.477073,"o":-58.836442},{"n":"Lisandro Segovia 1700","m":0,"a":-27.477159,"o":-58.835412},{"n":"Av. Tte. Ibañez Entre Av Sarmiento Y Av Maipu","m":0,"a":-27.483865,"o":-58.827723},{"n":"Av La Paz 2400","m":0,"a":-27.486577,"o":-58.825554},{"n":"Costanera Sur Entre Lavalle Y Gral Paz","m":0,"a":-27.4751,"o":-58.855507},{"n":"Costanera Sur Entre Gral Paz Y Necochea","m":0,"a":-27.476169,"o":-58.85526},{"n":"Santa Fe 1000","m":0,"a":-27.469532,"o":-58.830792}];
-const map=L.map('map',{zoomControl:true}).setView([-27.4675,-58.8335],15);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-const col=m=>m?'#1f6fd1':'#f2b705';
-D.forEach(p=>{p.k=L.circleMarker([p.a,p.o],{radius:9,color:'#fff',weight:2,fillColor:col(p.m),fillOpacity:1}).addTo(map).bindPopup(`<b>${p.n}</b><br>${p.m?'Estacionamiento medido':'Estacionamiento de motos'} · 10 m`)});
-let me=null,meMark=null;
-const dist=(a,b,c,d)=>{const r=Math.PI/180,x=(d-b)*r*Math.cos((a+c)/2*r),y=(c-a)*r;return Math.hypot(x,y)*6371000};
-function render(){
-  const t=document.getElementById('q').value.trim().toLowerCase();
-  let items=D.filter(p=>p.n.toLowerCase().includes(t));
-  if(me){items.forEach(p=>p.d=dist(me.lat,me.lng,p.a,p.o));items.sort((x,y)=>x.d-y.d)}
-  else items.sort((x,y)=>x.n.localeCompare(y.n,'es',{numeric:true}));
-  D.forEach(p=>{items.includes(p)?p.k.addTo(map):p.k.remove()});
-  const ul=document.getElementById('list');ul.innerHTML='';
-  if(!items.length){ul.innerHTML='<li>No hay estacionamientos con ese nombre. Probá con otra calle.</li>';return}
-  items.forEach(p=>{
-    const li=document.createElement('li');li.tabIndex=0;
-    const d=p.d!=null?(p.d<1000?Math.round(p.d)+' m':(p.d/1000).toFixed(1)+' km'):'';
-    li.innerHTML=`<span class="dot" style="background:${col(p.m)}"></span><div><b>${p.n}</b><div class="sub">${p.m?'Medido':'Motos'}${d?' · a '+d:''}</div></div><a class="go" href="https://www.google.com/maps/dir/?api=1&destination=${p.a},${p.o}&travelmode=driving" target="_blank" rel="noopener">Cómo llegar</a>`;
-    const open=()=>{map.setView([p.a,p.o],18);p.k.openPopup()};
-    li.onclick=e=>{if(!e.target.closest('a'))open()};
-    li.onkeydown=e=>{if(e.key==='Enter')open()};
-    ul.appendChild(li)});
+:root{
+  --ink:#eceae4;--muted:#9aa0a6;--sheet:#1a1d21;--sheet-2:#21262c;--line:#2c3138;
+  --moto:#f2b705;--med:#4da3ff;--accent:#f2b705;--accent-ink:#161510;--danger:#e5484d;
+  --shadow:0 10px 30px rgba(0,0,0,.45);--search-bg:rgba(26,29,33,.92);
 }
-document.getElementById('q').oninput=render;
-document.getElementById('loc').onclick=()=>{
-  if(!navigator.geolocation){alert('Tu navegador no permite ubicación.');return}
-  navigator.geolocation.getCurrentPosition(pos=>{
-    me={lat:pos.coords.latitude,lng:pos.coords.longitude};
-    if(meMark)meMark.remove();
-    meMark=L.marker([me.lat,me.lng],{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[16,16]})}).addTo(map);
-    render();const n=D.map(p=>({p,d:dist(me.lat,me.lng,p.a,p.o)})).sort((a,b)=>a.d-b.d)[0].p;
-    map.fitBounds([[me.lat,me.lng],[n.a,n.o]],{padding:[50,50],maxZoom:18});
-  },()=>alert('No pude obtener tu ubicación. Revisá el permiso del navegador.'),{enableHighAccuracy:true,timeout:10000});
+html[data-theme="light"]{
+  --ink:#22262a;--muted:#6b6f73;--sheet:#ffffff;--sheet-2:#f2f1ec;--line:#d9d7cf;
+  --med:#1f6fd1;--accent:#22262a;--accent-ink:#f7f6f2;--shadow:0 10px 30px rgba(0,0,0,.18);
+  --search-bg:rgba(255,255,255,.94);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#121417;overflow:hidden;height:100dvh}
+button{font:inherit;cursor:pointer;border:0;color:inherit;background:none}
+button:focus-visible,input:focus-visible,a:focus-visible,li:focus-visible{outline:2px solid var(--med);outline-offset:2px}
+#map{position:absolute;inset:0;background:var(--sheet)}
+#map .leaflet-control-attribution{background:rgba(18,20,23,.7);color:#9aa0a6;font-size:10px;padding:2px 6px}
+html[data-theme="light"] #map .leaflet-control-attribution{background:rgba(255,255,255,.8);color:#6b6f73}
+#map .leaflet-control-attribution a{color:inherit}
+.leaflet-popup-content-wrapper{background:var(--sheet);color:var(--ink);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.leaflet-popup-tip{background:var(--sheet);border:1px solid var(--line)}
+.leaflet-popup-content{margin:14px 14px 12px;min-width:210px}
+.leaflet-popup-close-button{color:var(--muted)!important;top:8px!important;right:10px!important;font-size:18px!important}
+.popup-title{font-size:17px;font-weight:700;margin:0 18px 6px 0}
+.popup-badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;margin-bottom:10px}
+.popup-dist{font-size:13px;color:var(--muted);margin-bottom:12px}
+.popup-go{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:10px 14px;border-radius:10px;background:var(--moto);color:#161510;text-decoration:none;font-weight:700}
+.badge-moto{background:rgba(242,183,5,.16);color:var(--moto)}
+.badge-med{background:rgba(77,163,255,.16);color:var(--med)}
+html[data-theme="light"] .badge-med{background:rgba(31,111,209,.12)}
+.pin{width:36px;height:36px;display:grid;place-items:center}
+.pin i{display:block;width:18px;height:18px;border-radius:50%;background:var(--moto);border:2.5px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.55);transition:transform .18s ease, box-shadow .18s ease}
+.pin--med i{background:var(--med)}
+.pin--selected i{transform:scale(1.45);box-shadow:0 0 0 6px rgba(242,183,5,.25),0 4px 14px rgba(0,0,0,.6)}
+.pin--dim{opacity:.45}
+.me{width:18px;height:18px;border-radius:50%;background:var(--danger);border:3px solid #fff;box-shadow:0 0 0 8px rgba(229,72,77,.18),0 2px 10px rgba(0,0,0,.5)}
+.searchbar{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:12px;right:12px;z-index:1000;display:flex;align-items:center;gap:8px;background:var(--search-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:16px;padding:6px 6px 6px 14px;box-shadow:var(--shadow)}
+.searchbar svg{flex:none;color:var(--muted)}
+.searchbar input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;padding:10px 0;outline:none}
+.searchbar input::placeholder{color:var(--muted)}
+.clearbtn{display:none;width:40px;height:40px;border-radius:10px;place-items:center;color:var(--muted)}
+.clearbtn.show{display:grid}
+.fabs{position:absolute;right:12px;bottom:calc(196px + env(safe-area-inset-bottom,0px));z-index:1000;display:flex;flex-direction:column;gap:10px}
+.fab{width:52px;height:52px;border-radius:50%;background:var(--sheet);border:1px solid var(--line);box-shadow:var(--shadow);display:grid;place-items:center;color:var(--ink);position:relative}
+.fab:active{transform:scale(.94)}
+.fab.loading{pointer-events:none;opacity:.75}
+.fab.loading svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:900;height:38dvh;min-height:180px;max-height:82dvh;background:var(--sheet);border-top:1px solid var(--line);border-radius:20px 20px 0 0;box-shadow:0 -12px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;transition:height .28s ease;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet.open{height:78dvh}
+.handle{width:100%;padding:10px 0 4px;display:grid;place-items:center;flex:none}
+.handle span{width:44px;height:5px;border-radius:999px;background:var(--line);display:block}
+.chips{display:flex;align-items:center;gap:8px;padding:6px 12px 10px;overflow-x:auto;flex:none;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:38px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--sheet-2);color:var(--ink);font-weight:600;font-size:13px}
+.chip.active{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.chip-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
+#count{margin-left:auto;flex:none;font-size:12px;color:var(--muted);padding-left:8px}
+#list{flex:1;overflow:auto;margin:0;padding:0;list-style:none;-webkit-overflow-scrolling:touch}
+#list li{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 14px;border-top:1px solid var(--line);cursor:pointer}
+#list li:active{background:var(--sheet-2)}
+#list li.selected{background:var(--sheet-2)}
+.dot{width:14px;height:14px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.5)}
+.row-main{flex:1;min-width:0}
+.row-main b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{color:var(--muted);font-size:13px;margin-top:1px}
+.dist{flex:none;font-size:12px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 8px}
+.go{flex:none;min-width:44px;min-height:44px;display:grid;place-items:center;color:var(--med);text-decoration:none}
+.empty{padding:22px 16px;color:var(--muted);text-align:center}
+#toast{position:absolute;left:50%;bottom:calc(210px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);z-index:1100;background:var(--ink);color:var(--sheet);font-size:13px;font-weight:600;padding:10px 14px;border-radius:999px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease;max-width:88vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (min-width:700px){.sheet{left:12px;right:auto;width:380px;bottom:12px;border-radius:20px;height:56dvh;max-height:calc(100dvh - 110px)}.sheet.open{height:78dvh}.fabs{bottom:auto;top:82px}.searchbar{right:auto;width:380px}}
+</style></head><body>
+<div id="map"></div>
+<div class="searchbar">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+  <input id="q" type="search" placeholder="Buscar calle (ej. San Martín)" aria-label="Buscar calle" autocomplete="off">
+  <button id="clear" class="clearbtn" aria-label="Limpiar búsqueda"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</div>
+<div class="fabs">
+  <button id="theme" class="fab" aria-label="Cambiar entre modo noche y día"><svg id="themeIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button>
+  <button id="loc" class="fab" aria-label="Cerca mío"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg></button>
+</div>
+<section class="sheet" id="sheet">
+  <button class="handle" id="handle" aria-expanded="false" aria-label="Expandir o contraer lista"><span></span></button>
+  <div class="chips" role="group" aria-label="Filtrar por tipo">
+    <button class="chip active" data-f="all">Todos</button>
+    <button class="chip" data-f="moto"><span class="chip-dot" style="background:var(--moto)"></span>Motos</button>
+    <button class="chip" data-f="med"><span class="chip-dot" style="background:var(--med)"></span>Medido</button>
+    <span id="count">86 puntos</span>
+  </div>
+  <ul id="list"></ul>
+</section>
+<div id="toast" role="status"></div>
+<noscript><p style="padding:16px">Necesitás activar JavaScript para ver el mapa.</p></noscript>
+<script>
+const D = [
+ {
+  "n": "San Martín 1100",
+  "m": 0,
+  "a": -27.469671,
+  "o": -58.836633
+ },
+ {
+  "n": "San Martín 1000",
+  "m": 0,
+  "a": -27.469519,
+  "o": -58.837985
+ },
+ {
+  "n": "San Martín 1200",
+  "m": 0,
+  "a": -27.469805,
+  "o": -58.835474
+ },
+ {
+  "n": "San Martín 1300",
+  "m": 0,
+  "a": -27.469957,
+  "o": -58.834402
+ },
+ {
+  "n": "Córdoba 1000",
+  "m": 0,
+  "a": -27.469767,
+  "o": -58.834831
+ },
+ {
+  "n": "Córdoba 100",
+  "m": 0,
+  "a": -27.470947,
+  "o": -58.834895
+ },
+ {
+  "n": "Bolivar 1200",
+  "m": 0,
+  "a": -27.471194,
+  "o": -58.83511
+ },
+ {
+  "n": "Mendoza 1200",
+  "m": 0,
+  "a": -27.471137,
+  "o": -58.835936
+ },
+ {
+  "n": "Bolivar 1100",
+  "m": 1,
+  "a": -27.471033,
+  "o": -58.836161
+ },
+ {
+  "n": "San Juan 1100",
+  "m": 1,
+  "a": -27.470728,
+  "o": -58.837116
+ },
+ {
+  "n": "San Juan 1100",
+  "m": 1,
+  "a": -27.469595,
+  "o": -58.837019
+ },
+ {
+  "n": "San Juan 900",
+  "m": 0,
+  "a": -27.468472,
+  "o": -58.836923
+ },
+ {
+  "n": "H. Irigoyen 1000",
+  "m": 1,
+  "a": -27.468691,
+  "o": -58.837062
+ },
+ {
+  "n": "Catamarca 800",
+  "m": 0,
+  "a": -27.466898,
+  "o": -58.832926
+ },
+ {
+  "n": "Catamarca 700",
+  "m": 0,
+  "a": -27.465784,
+  "o": -58.832797
+ },
+ {
+  "n": "Córdoba 600",
+  "m": 1,
+  "a": -27.465394,
+  "o": -58.834192
+ },
+ {
+  "n": "25 de Mayo 1400",
+  "m": 1,
+  "a": -27.464698,
+  "o": -58.832561
+ },
+ {
+  "n": "25 de Mayo 1200",
+  "m": 0,
+  "a": -27.464555,
+  "o": -58.834117
+ },
+ {
+  "n": "Mendoza 600",
+  "m": 1,
+  "a": -27.464517,
+  "o": -58.835233
+ },
+ {
+  "n": "Mendoza 500",
+  "m": 0,
+  "a": -27.463308,
+  "o": -58.835115
+ },
+ {
+  "n": "Quintana 1100",
+  "m": 0,
+  "a": -27.462956,
+  "o": -58.836263
+ },
+ {
+  "n": "San Juan 500",
+  "m": 0,
+  "a": -27.464051,
+  "o": -58.836531
+ },
+ {
+  "n": "25 de Mayo 1000",
+  "m": 0,
+  "a": -27.464308,
+  "o": -58.836681
+ },
+ {
+  "n": "Quintana 1000",
+  "m": 0,
+  "a": -27.462832,
+  "o": -58.837529
+ },
+ {
+  "n": "San Lorenzo 700",
+  "m": 0,
+  "a": -27.466716,
+  "o": -58.831724
+ },
+ {
+  "n": "San Lorenzo 600",
+  "m": 0,
+  "a": -27.465631,
+  "o": -58.831585
+ },
+ {
+  "n": "C. Pellegrini 1500",
+  "m": 0,
+  "a": -27.465717,
+  "o": -58.831359
+ },
+ {
+  "n": "Santa Fe 700",
+  "m": 0,
+  "a": -27.466811,
+  "o": -58.830405
+ },
+ {
+  "n": "Santa Fe 600",
+  "m": 0,
+  "a": -27.465706,
+  "o": -58.830308
+ },
+ {
+  "n": "España 900",
+  "m": 0,
+  "a": -27.468462,
+  "o": -58.829165
+ },
+ {
+  "n": "España 800",
+  "m": 0,
+  "a": -27.46721,
+  "o": -58.829021
+ },
+ {
+  "n": "San Martín 1400",
+  "m": 0,
+  "a": -27.470148,
+  "o": -58.831779
+ },
+ {
+  "n": "Belgrano 1700",
+  "m": 0,
+  "a": -27.472682,
+  "o": -58.829505
+ },
+ {
+  "n": "Belgrano 1800",
+  "m": 0,
+  "a": -27.472797,
+  "o": -58.828239
+ },
+ {
+  "n": "Belgrano 1600",
+  "m": 0,
+  "a": -27.47253,
+  "o": -58.830814
+ },
+ {
+  "n": "Boivar 1500",
+  "m": 0,
+  "a": -27.471578,
+  "o": -58.831178
+ },
+ {
+  "n": "Moreno 1300",
+  "m": 0,
+  "a": -27.473606,
+  "o": -58.833855
+ },
+ {
+  "n": "Moreno 1200",
+  "m": 0,
+  "a": -27.473454,
+  "o": -58.835223
+ },
+ {
+  "n": "Mendoza 1400",
+  "m": 0,
+  "a": -27.473453,
+  "o": -58.836141
+ },
+ {
+  "n": "Mendoza 1500",
+  "m": 0,
+  "a": -27.474614,
+  "o": -58.836237
+ },
+ {
+  "n": "Córdoba 1400",
+  "m": 0,
+  "a": -27.47439,
+  "o": -58.835341
+ },
+ {
+  "n": "San Juan 1300",
+  "m": 0,
+  "a": -27.472315,
+  "o": -58.837337
+ },
+ {
+  "n": "Moreno 1100",
+  "m": 0,
+  "a": -27.473367,
+  "o": -58.836414
+ },
+ {
+  "n": "Salta 1300",
+  "m": 0,
+  "a": -27.472658,
+  "o": -58.839762
+ },
+ {
+  "n": "Salta 1500",
+  "m": 0,
+  "a": -27.474904,
+  "o": -58.839869
+ },
+ {
+  "n": "San Lorenzo 1400",
+  "m": 0,
+  "a": -27.474657,
+  "o": -58.832648
+ },
+ {
+  "n": "H. Irigoyen 1800",
+  "m": 0,
+  "a": -27.469532,
+  "o": -58.828196
+ },
+ {
+  "n": "Jujuy 1000",
+  "m": 0,
+  "a": -27.469627,
+  "o": -58.82796
+ },
+ {
+  "n": "Paraguay 900",
+  "m": 0,
+  "a": -27.469465,
+  "o": -58.826849
+ },
+ {
+  "n": "Jujuy 1100",
+  "m": 0,
+  "a": -27.470798,
+  "o": -58.828126
+ },
+ {
+  "n": "Roca 900",
+  "m": 0,
+  "a": -27.469037,
+  "o": -58.822724
+ },
+ {
+  "n": "Placido Martines 1300",
+  "m": 0,
+  "a": -27.463547,
+  "o": -58.832771
+ },
+ {
+  "n": "25 de Mayo 500",
+  "m": 0,
+  "a": -27.463604,
+  "o": -58.840067
+ },
+ {
+  "n": "Tucuman 600",
+  "m": 0,
+  "a": -27.464689,
+  "o": -58.841655
+ },
+ {
+  "n": "Catamarca 1200",
+  "m": 0,
+  "a": -27.471712,
+  "o": -58.83341
+ },
+ {
+  "n": "San Lorenzo 900 (plaza)",
+  "m": 0,
+  "a": -27.468625,
+  "o": -58.831758
+ },
+ {
+  "n": "C. Pellegrini 700",
+  "m": 0,
+  "a": -27.464804,
+  "o": -58.841268
+ },
+ {
+  "n": "C. Pellegrini 800",
+  "m": 0,
+  "a": -27.464994,
+  "o": -58.839294
+ },
+ {
+  "n": "C. Pellegrini 400",
+  "m": 0,
+  "a": -27.464556,
+  "o": -58.844852
+ },
+ {
+  "n": "Tucuman 1100",
+  "m": 0,
+  "a": -27.470211,
+  "o": -58.842041
+ },
+ {
+  "n": "Bolivar 500",
+  "m": 0,
+  "a": -27.470572,
+  "o": -58.842363
+ },
+ {
+  "n": "San Martín 1000",
+  "m": 0,
+  "a": -27.469439,
+  "o": -58.839152
+ },
+ {
+  "n": "Quintana 1300",
+  "m": 0,
+  "a": -27.463183,
+  "o": -58.833663
+ },
+ {
+  "n": "C. Pellegrini 400 (sector P. Camba Cua)",
+  "m": 0,
+  "a": -27.464716,
+  "o": -58.845003
+ },
+ {
+  "n": "Placido Martinez 1200",
+  "m": 0,
+  "a": -27.462327,
+  "o": -58.833952
+ },
+ {
+  "n": "Córdoba 300",
+  "m": 0,
+  "a": -27.462098,
+  "o": -58.833824
+ },
+ {
+  "n": "Placido Martinez 1300",
+  "m": 0,
+  "a": -27.462469,
+  "o": -58.83259
+ },
+ {
+  "n": "Placido Martinez 800",
+  "m": 0,
+  "a": -27.46156,
+  "o": -58.839033
+ },
+ {
+  "n": "C. Pellegrini 1200",
+  "m": 0,
+  "a": -27.465397,
+  "o": -58.83524
+ },
+ {
+  "n": "Mendoza 700",
+  "m": 0,
+  "a": -27.465563,
+  "o": -58.835326
+ },
+ {
+  "n": "Junin 800",
+  "m": 0,
+  "a": -27.46721,
+  "o": -58.840325
+ },
+ {
+  "n": "Moreno 900",
+  "m": 0,
+  "a": -27.47326,
+  "o": -58.83745
+ },
+ {
+  "n": "Rivadavia 1600",
+  "m": 0,
+  "a": -27.47483,
+  "o": -58.831115
+ },
+ {
+  "n": "Rivadavia 1700",
+  "m": 0,
+  "a": -27.474992,
+  "o": -58.829489
+ },
+ {
+  "n": "H. Irigoyen 900",
+  "m": 0,
+  "a": -27.469374,
+  "o": -58.828003
+ },
+ {
+  "n": "Belgrano 2100",
+  "m": 0,
+  "a": -27.473231,
+  "o": -58.824469
+ },
+ {
+  "n": "Bolivar 2100",
+  "m": 0,
+  "a": -27.472222,
+  "o": -58.823766
+ },
+ {
+  "n": "Av Artigas 1100",
+  "m": 0,
+  "a": -27.471767,
+  "o": -58.818643
+ },
+ {
+  "n": "San Martín 600",
+  "m": 0,
+  "a": -27.469129,
+  "o": -58.842978
+ },
+ {
+  "n": "Lavalle 1200 (dársena Mercado)",
+  "m": 0,
+  "a": -27.477073,
+  "o": -58.836442
+ },
+ {
+  "n": "Lisandro Segovia 1700",
+  "m": 0,
+  "a": -27.477159,
+  "o": -58.835412
+ },
+ {
+  "n": "Av. Tte. Ibañez Entre Av Sarmiento Y Av Maipu",
+  "m": 0,
+  "a": -27.483865,
+  "o": -58.827723
+ },
+ {
+  "n": "Av La Paz 2400",
+  "m": 0,
+  "a": -27.486577,
+  "o": -58.825554
+ },
+ {
+  "n": "Costanera Sur Entre Lavalle Y Gral Paz",
+  "m": 0,
+  "a": -27.4751,
+  "o": -58.855507
+ },
+ {
+  "n": "Costanera Sur Entre Gral Paz Y Necochea",
+  "m": 0,
+  "a": -27.476169,
+  "o": -58.85526
+ },
+ {
+  "n": "Santa Fe 1000",
+  "m": 0,
+  "a": -27.469532,
+  "o": -58.830792
+ }
+];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const $ = id => document.getElementById(id);
+const toastEl = $('toast'); let toastTimer;
+function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(()=>toastEl.classList.remove('show'), 3200); }
+if (!window.L) { $('list').innerHTML = '<li class="empty">No se pudo cargar el mapa. Revisá tu conexión e intentá de nuevo.</li>'; }
+else {
+let theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+const TILES = {
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
 };
+const ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>';
+let savedView = null; try{ savedView = JSON.parse(localStorage.getItem('motos.view') || 'null'); }catch(e){}
+const startCenter = savedView && savedView.c ? [savedView.c[0], savedView.c[1]] : [-27.4675,-58.8335];
+const startZoom = savedView && savedView.z ? savedView.z : 15;
+const map = L.map('map', {zoomControl:false, attributionControl:true}).setView(startCenter, startZoom);
+let tiles = L.tileLayer(TILES[theme], {maxZoom:19, attribution:ATTR}).addTo(map);
+map.on('moveend', ()=>{ try{ localStorage.setItem('motos.view', JSON.stringify({c:[map.getCenter().lat, map.getCenter().lng], z:map.getZoom()})); }catch(e){} });
+const col = m => m ? (theme==='dark' ? '#4da3ff' : '#1f6fd1') : '#f2b705';
+const label = m => m ? 'Medido' : 'Motos';
+let me = null, meMark = null, selected = null, filter = 'all', myIcon = L.divIcon({className:'', html:'<div class="me"></div>', iconSize:[18,18], iconAnchor:[9,9]});
+function iconFor(p, isSel, isDim){
+  const cls = 'pin' + (p.m ? ' pin--med' : '') + (isSel ? ' pin--selected' : '') + (isDim ? ' pin--dim' : '');
+  return L.divIcon({className:'', html:`<div class="${cls}"><i style="background:${col(p.m)}"></i></div>`, iconSize:[36,36], iconAnchor:[18,18]});
+}
+function popupHtml(p){
+  const d = p.d != null ? (p.d<1000 ? Math.round(p.d)+' m' : (p.d/1000).toFixed(1)+' km') : '';
+  return `<p class="popup-title">${esc(p.n)}</p><span class="popup-badge ${p.m?'badge-med':'badge-moto'}">${label(p.m)}</span>${d?`<div class="popup-dist">A ${d} de vos</div>`:''}<a class="popup-go" href="https://www.google.com/maps/dir/?api=1&destination=${p.a},${p.o}&travelmode=driving" target="_blank" rel="noopener">Cómo llegar</a>`;
+}
+function refreshIcons(){ D.forEach(p=>{ if(p.k) p.k.setIcon(iconFor(p, p===selected, selected && p!==selected)); }); }
+D.forEach(p=>{
+  p.k = L.marker([p.a,p.o], {icon: iconFor(p,false,false)}).addTo(map).bindPopup(popupHtml(p), {closeButton:true, maxWidth:260});
+  p.k.on('click', ()=> selectPoint(p, {fly:false, scroll:true, collapse:true, popup:true}));
+});
+const dist = (a,b,c,d)=>{ const r=Math.PI/180, x=(d-b)*r*Math.cos((a+c)/2*r), y=(c-a)*r; return Math.hypot(x,y)*6371000; };
+const ul = $('list');
+function render(){
+  const t = norm($('q').value.trim());
+  let items = D.filter(p=>{
+    if (filter==='moto' && p.m!==0) return false;
+    if (filter==='med' && p.m!==1) return false;
+    return !t || norm(p.n).includes(t);
+  });
+  if (me){ items.forEach(p=>p.d=dist(me.lat,me.lng,p.a,p.o)); items = [...items].sort((x,y)=>x.d-y.d); }
+  else items = [...items].sort((x,y)=>x.n.localeCompare(y.n,'es',{numeric:true}));
+  const vis = new Set(items);
+  D.forEach(p=>{ vis.has(p) ? p.k.addTo(map) : p.k.remove(); });
+  if (selected && !vis.has(selected)) selected = null;
+  refreshIcons();
+  $('count').textContent = items.length + (items.length===1 ? ' punto' : ' puntos');
+  ul.innerHTML = '';
+  $('clear').classList.toggle('show', !!$('q').value);
+  if (!items.length){ ul.innerHTML = '<li class="empty">No hay estacionamientos con ese nombre. Probá con otra calle.</li>'; return; }
+  const frag = document.createDocumentFragment();
+  items.forEach(p=>{
+    const li = document.createElement('li');
+    li.tabIndex = 0; li.dataset.n = p.n;
+    if (p===selected) li.classList.add('selected');
+    const d = p.d!=null ? (p.d<1000 ? Math.round(p.d)+' m' : (p.d/1000).toFixed(1)+' km') : '';
+    li.innerHTML = `<span class="dot" style="background:${col(p.m)}"></span><div class="row-main"><b></b><div class="sub"></div></div>${d?`<span class="dist">${d}</span>`:''}<a class="go" href="https://www.google.com/maps/dir/?api=1&destination=${p.a},${p.o}&travelmode=driving" target="_blank" rel="noopener" aria-label="Cómo llegar a ${esc(p.n)}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="11" r="3"/></svg></a>`;
+    li.querySelector('b').textContent = p.n;
+    li.querySelector('.sub').textContent = label(p.m) + (d ? ' · a '+d : '');
+    const open = ()=> selectPoint(p, {fly:true, scroll:false, collapse:true, popup:true});
+    li.onclick = e=>{ if (!e.target.closest('a')) open(); };
+    li.onkeydown = e=>{ if (e.key==='Enter' || e.key===' ') { e.preventDefault(); open(); } };
+    frag.appendChild(li);
+  });
+  ul.appendChild(frag);
+}
+function selectPoint(p, opts={}){
+  selected = p; refreshIcons();
+  document.querySelectorAll('#list li').forEach(li=> li.classList.toggle('selected', li.dataset.n===p.n));
+  if (opts.collapse) $('sheet').classList.remove('open');
+  if (opts.scroll){
+    const li = [...ul.children].find(el=> el.dataset.n===p.n);
+    if (li) li.scrollIntoView({block:'center', behavior:'smooth'});
+  }
+  if (opts.fly) map.flyTo([p.a,p.o], 18, {animate:true, duration:.6});
+  if (opts.popup) p.k.openPopup();
+}
+let debounce;
+$('q').addEventListener('input', ()=>{ clearTimeout(debounce); debounce = setTimeout(render, 150); });
+$('clear').onclick = ()=>{ $('q').value=''; render(); $('q').focus(); };
+$('handle').onclick = ()=>{ const open = $('sheet').classList.toggle('open'); $('handle').setAttribute('aria-expanded', open); };
+document.querySelectorAll('.chip').forEach(ch=> ch.onclick = ()=>{
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  ch.classList.add('active'); filter = ch.dataset.f; render();
+});
+$('loc').onclick = ()=>{
+  if (!navigator.geolocation){ toast('Tu navegador no permite ubicación.'); return; }
+  const btn = $('loc'); btn.classList.add('loading');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    btn.classList.remove('loading');
+    me = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+    try{ localStorage.setItem('motos.me', JSON.stringify(me)); }catch(e){}
+    if (meMark) meMark.remove();
+    meMark = L.marker([me.lat,me.lng], {icon: myIcon}).addTo(map);
+    render();
+    const nearest = D.map(p=>({p, d:dist(me.lat,me.lng,p.a,p.o)})).sort((a,b)=>a.d-b.d)[0]?.p;
+    if (nearest) map.fitBounds([[me.lat,me.lng],[nearest.a,nearest.o]], {paddingTopLeft:[40,80], paddingBottomRight:[40,210], maxZoom:17});
+    else map.setView([me.lat,me.lng], 16);
+  }, ()=>{ btn.classList.remove('loading'); toast('No pude obtener tu ubicación. Revisá el permiso del navegador.'); }, {enableHighAccuracy:true, timeout:10000});
+};
+try{
+  const lastMe = JSON.parse(localStorage.getItem('motos.me') || 'null');
+  if (lastMe && lastMe.lat){ me = lastMe; meMark = L.marker([me.lat,me.lng], {icon: myIcon}).addTo(map); }
+}catch(e){}
+function setTheme(t){
+  theme = t; document.documentElement.dataset.theme = t;
+  try{ localStorage.setItem('motos.theme', t); }catch(e){}
+  map.removeLayer(tiles);
+  tiles = L.tileLayer(TILES[t], {maxZoom:19, attribution:ATTR}).addTo(map);
+  $('themeIcon').innerHTML = t==='dark' ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>' : '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>';
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', t==='dark' ? '#121417' : '#ffffff');
+  D.forEach(p=>{ if (p.k) p.k.setPopupContent(popupHtml(p)); });
+  render();
+}
+$('theme').onclick = ()=> setTheme(theme==='dark' ? 'light' : 'dark');
+$('themeIcon').innerHTML = theme==='dark' ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>' : '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>';
 render();
+}
 </script></body></html>
