@@ -43,6 +43,27 @@ button:focus-visible,input:focus-visible,a:focus-visible,li:focus-visible{outlin
 .searchbar input::placeholder{color:var(--muted)}
 .clearbtn{display:none;width:40px;height:40px;border-radius:10px;place-items:center;color:var(--muted)}
 .clearbtn.show{display:grid}
+.searchwrap{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:12px;right:12px;z-index:1000}
+.searchwrap .searchbar{position:relative;top:auto;left:auto;right:auto;z-index:auto}
+#suggestions{list-style:none;margin:8px 0 0;padding:6px;background:var(--sheet);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);max-height:50dvh;overflow:auto}
+#suggestions[hidden]{display:none}
+#suggestions li{padding:10px;border-radius:10px;cursor:pointer;display:flex;gap:10px;align-items:center;min-height:44px}
+#suggestions li:not(.sugg-empty):not(.sugg-fallback):active,#suggestions li.hl{background:var(--sheet-2)}
+.sugg-ic{flex:none;width:34px;height:34px;border-radius:50%;background:rgba(31,111,209,.12);color:var(--med);display:grid;place-items:center}
+.sugg-main{flex:1;min-width:0}
+.sugg-title{display:block;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.sugg-sub{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.sugg-empty{padding:12px 10px;color:var(--muted);font-size:13px;cursor:default}
+.sugg-fallback{padding:10px}
+.sugg-fallback a{display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:10px;background:var(--sheet-2);color:var(--med);font-weight:700;font-size:13px;text-decoration:none}
+.dest{width:38px;height:38px;display:grid;place-items:center}
+.dest i{display:block;width:26px;height:26px;border-radius:50%;background:#1f6fd1;border:3px solid #fff;box-shadow:0 0 0 6px rgba(31,111,209,.18),0 2px 10px rgba(0,0,0,.4)}
+.popup-dest-near{font-size:13px;color:var(--muted);margin-bottom:12px}
+.destbanner{display:flex;align-items:center;gap:8px;margin:0 12px 8px;padding:8px 12px;background:rgba(31,111,209,.10);border:1px solid rgba(31,111,209,.25);border-radius:12px;font-size:13px}
+.destbanner[hidden]{display:none}
+.destbanner span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.destbanner span b{font-weight:700}
+.destbanner button{flex:none;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--med);background:rgba(255,255,255,.9);border:1px solid var(--line)}
 .fabs{position:absolute;right:12px;top:calc(76px + env(safe-area-inset-top,0px));z-index:1000;display:flex;flex-direction:column;gap:10px}
 .fab{width:52px;height:52px;border-radius:50%;background:var(--sheet);border:1px solid var(--line);box-shadow:var(--shadow);display:grid;place-items:center;color:var(--ink);position:relative}
 .fab:active{transform:scale(.94)}
@@ -72,13 +93,16 @@ button:focus-visible,input:focus-visible,a:focus-visible,li:focus-visible{outlin
 .empty{padding:22px 16px;color:var(--muted);text-align:center}
 #toast{position:absolute;left:50%;top:calc(140px + env(safe-area-inset-top,0px));transform:translate(-50%,-16px);z-index:1100;background:var(--ink);color:var(--sheet);font-size:13px;font-weight:600;padding:10px 14px;border-radius:999px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease;max-width:88vw;text-align:center}
 #toast.show{opacity:1;transform:translate(-50%,0)}
-@media (min-width:700px){.sheet{left:12px;right:auto;width:380px;bottom:12px;border-radius:20px;height:56dvh;max-height:calc(100dvh - 110px)}.sheet.open{height:78dvh}.fabs{top:82px}.searchbar{right:auto;width:380px}}
+@media (min-width:700px){.sheet{left:12px;right:auto;width:380px;bottom:12px;border-radius:20px;height:56dvh;max-height:calc(100dvh - 110px)}.sheet.open{height:78dvh}.fabs{top:82px}.searchwrap{right:auto;width:380px}}
 </style></head><body>
 <div id="map"></div>
-<div class="searchbar">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-  <input id="q" type="search" placeholder="Buscar calle (ej. San Martín)" aria-label="Buscar calle" autocomplete="off">
-  <button id="clear" class="clearbtn" aria-label="Limpiar búsqueda"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+<div class="searchwrap">
+  <div class="searchbar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="q" type="search" placeholder="Buscar calle o lugar (ej. Paseo Libertad)" aria-label="Buscar calle o lugar" autocomplete="off">
+    <button id="clear" class="clearbtn" aria-label="Limpiar búsqueda"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <ul id="suggestions" hidden></ul>
 </div>
 <div class="fabs">
   <button id="loc" class="fab" aria-label="Cerca mío"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg></button>
@@ -91,6 +115,7 @@ button:focus-visible,input:focus-visible,a:focus-visible,li:focus-visible{outlin
     <button class="chip" data-f="med"><span class="chip-dot" style="background:var(--med)"></span>Medido</button>
     <span id="count">86 puntos</span>
   </div>
+  <div id="destbanner" class="destbanner" hidden><span></span><button id="cleardest" aria-label="Limpiar destino"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
   <ul id="list"></ul>
 </section>
 <div id="toast" role="status"></div>
@@ -614,6 +639,7 @@ const D = [
   "o": -58.830792
  }
 ];
+const EXTRA_PLACES = [];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const $ = id => document.getElementById(id);
@@ -622,7 +648,7 @@ function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); c
 if (!window.L) { $('list').innerHTML = '<li class="empty">No se pudo cargar el mapa. Revisá tu conexión e intentá de nuevo.</li>'; }
 else {
 const TILE = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-const ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+const ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://nominatim.openstreetmap.org/">Nominatim</a>';
 let savedView = null; try{ savedView = JSON.parse(localStorage.getItem('motos.view') || 'null'); }catch(e){}
 const startCenter = savedView && savedView.c ? [savedView.c[0], savedView.c[1]] : [-27.4675,-58.8335];
 const startZoom = savedView && savedView.z ? savedView.z : 15;
@@ -631,14 +657,23 @@ L.tileLayer(TILE, {maxZoom:19, attribution:ATTR}).addTo(map);
 map.on('moveend', ()=>{ try{ localStorage.setItem('motos.view', JSON.stringify({c:[map.getCenter().lat, map.getCenter().lng], z:map.getZoom()})); }catch(e){} });
 const col = m => m ? '#1f6fd1' : '#f2b705';
 const label = m => m ? 'Medido' : 'Motos';
-let me = null, meMark = null, selected = null, filter = 'all', myIcon = L.divIcon({className:'', html:'<div class="me"></div>', iconSize:[18,18], iconAnchor:[9,9]});
+let me = null, meMark = null, dest = null, destMark = null, selected = null, filter = 'all', myIcon = L.divIcon({className:'', html:'<div class="me"></div>', iconSize:[18,18], iconAnchor:[9,9]});
+let destIcon = L.divIcon({className:'', html:'<div class="dest"><i></i></div>', iconSize:[38,38], iconAnchor:[19,19]});
 function iconFor(p, isSel, isDim){
   const cls = 'pin' + (p.m ? ' pin--med' : '') + (isSel ? ' pin--selected' : '') + (isDim ? ' pin--dim' : '');
   return L.divIcon({className:'', html:`<div class="${cls}"><i style="background:${col(p.m)}"></i></div>`, iconSize:[36,36], iconAnchor:[18,18]});
 }
 function popupHtml(p){
   const d = p.d != null ? (p.d<1000 ? Math.round(p.d)+' m' : (p.d/1000).toFixed(1)+' km') : '';
-  return `<p class="popup-title">${esc(p.n)}</p><span class="popup-badge ${p.m?'badge-med':'badge-moto'}">${label(p.m)}</span>${d?`<div class="popup-dist">A ${d} de vos</div>`:''}<a class="popup-go" href="https://www.google.com/maps/dir/?api=1&destination=${p.a},${p.o}&travelmode=driving" target="_blank" rel="noopener">Cómo llegar</a>`;
+  const ref = dest ? ' del lugar buscado' : ' de vos';
+  return `<p class="popup-title">${esc(p.n)}</p><span class="popup-badge ${p.m?'badge-med':'badge-moto'}">${label(p.m)}</span>${d?`<div class="popup-dist">A ${d}${ref}</div>`:''}<a class="popup-go" href="https://www.google.com/maps/dir/?api=1&destination=${p.a},${p.o}&travelmode=driving" target="_blank" rel="noopener">Cómo llegar</a>`;
+}
+function destPopupHtml(){
+  if (!dest) return '';
+  const nearest = D.map(p=>({p, d:dist(dest.lat,dest.lng,p.a,p.o)})).sort((x,y)=>x.d-y.d)[0];
+  const nd = nearest ? (nearest.d<1000 ? Math.round(nearest.d)+' m' : (nearest.d/1000).toFixed(1)+' km') : '';
+  const nearHtml = nearest ? `<div class="popup-dest-near">Estacionamiento más cercano: <b>${esc(nearest.p.n)}</b> · ${label(nearest.p.m)} · a ${nd}</div><a class="popup-go" href="https://www.google.com/maps/dir/?api=1&destination=${nearest.p.a},${nearest.p.o}&travelmode=driving" target="_blank" rel="noopener">Cómo llegar al más cercano</a>` : '<div class="popup-dest-near">Sin estacionamientos cargados.</div>';
+  return `<p class="popup-title">${esc(dest.name)}</p><span class="popup-badge badge-med">Lugar buscado</span>${nearHtml}`;
 }
 function refreshIcons(){ D.forEach(p=>{ if(p.k) p.k.setIcon(iconFor(p, p===selected, selected && p!==selected)); }); }
 D.forEach(p=>{
@@ -652,14 +687,17 @@ function render(){
   let items = D.filter(p=>{
     if (filter==='moto' && p.m!==0) return false;
     if (filter==='med' && p.m!==1) return false;
+    if (dest) return true;
     return !t || norm(p.n).includes(t);
   });
-  if (me){ items.forEach(p=>p.d=dist(me.lat,me.lng,p.a,p.o)); items = [...items].sort((x,y)=>x.d-y.d); }
+  if (dest){ items.forEach(p=>p.d=dist(dest.lat,dest.lng,p.a,p.o)); items = [...items].sort((x,y)=>x.d-y.d); }
+  else if (me){ items.forEach(p=>p.d=dist(me.lat,me.lng,p.a,p.o)); items = [...items].sort((x,y)=>x.d-y.d); }
   else items = [...items].sort((x,y)=>x.n.localeCompare(y.n,'es',{numeric:true}));
   const vis = new Set(items);
   D.forEach(p=>{ vis.has(p) ? p.k.addTo(map) : p.k.remove(); });
   if (selected && !vis.has(selected)) selected = null;
   refreshIcons();
+  items.forEach(p=> p.k.setPopupContent(popupHtml(p)));
   $('count').textContent = items.length + (items.length===1 ? ' punto' : ' puntos');
   ul.innerHTML = '';
   $('clear').classList.toggle('show', !!$('q').value);
@@ -691,9 +729,129 @@ function selectPoint(p, opts={}){
   if (opts.fly) map.flyTo([p.a,p.o], 18, {animate:true, duration:.6});
   if (opts.popup) p.k.openPopup();
 }
-let debounce;
-$('q').addEventListener('input', ()=>{ clearTimeout(debounce); debounce = setTimeout(render, 150); });
-$('clear').onclick = ()=>{ $('q').value=''; render(); $('q').focus(); };
+let debounce, geoDebounce, geoToken = 0;
+const geoCache = {};
+const suggEl = $('suggestions');
+function hideSuggestions(){ suggEl.hidden = true; suggEl.innerHTML = ''; }
+function updateDestBanner(){
+  const b = $('destbanner');
+  if (!dest){ b.hidden = true; return; }
+  b.hidden = false;
+  b.querySelector('span').innerHTML = `Cerca de: <b>${esc(dest.name)}</b>`;
+}
+function clearDestination(keepInput){
+  dest = null;
+  if (destMark){ destMark.remove(); destMark = null; }
+  updateDestBanner();
+  if (!keepInput) render();
+  else render();
+}
+$('cleardest').onclick = ()=>{ clearDestination(false); $('q').value=''; hideSuggestions(); render(); $('q').focus(); };
+function googleFallbackHtml(q){
+  const u = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q + ' Corrientes, Argentina');
+  return `<li class="sugg-fallback"><a href="${u}" target="_blank" rel="noopener">Buscar "${esc(q)}" en Google Maps</a></li>`;
+}
+async function geocode(q){
+  const key = norm(q.trim());
+  if (!key) return [];
+  if (geoCache[key]) return geoCache[key];
+  const extra = EXTRA_PLACES.filter(p=> norm(p.n).includes(key)).map(p=>({title:p.n, sub:'Guardado', lat:p.a, lng:p.o, addr:'Guardado', type:'extra'}));
+  const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=0&accept-language=es&countrycodes=ar&q=' + encodeURIComponent(q) + '&viewbox=-58.87,-27.41,-58.75,-27.57&bounded=1';
+  let remote = [];
+  try{
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('bad');
+    const data = await res.json();
+    remote = data.map(r=>{
+      const parts = String(r.display_name||r.name||'').split(',');
+      const title = (parts[0]||'').trim() || 'Lugar';
+      const sub = parts.slice(1,3).join(',').trim();
+      return {title, sub, lat:parseFloat(r.lat), lng:parseFloat(r.lon), addr:String(r.display_name||''), type:r.type||''};
+    }).filter(r=> isFinite(r.lat) && isFinite(r.lng));
+  }catch(e){ remote = []; }
+  const merged = [...extra, ...remote];
+  geoCache[key] = merged;
+  return merged;
+}
+function renderSuggestions(list, q){
+  if (q.trim().length < 3){ hideSuggestions(); return; }
+  suggEl.innerHTML = '';
+  if (!list.length){
+    suggEl.innerHTML = '<li class="sugg-empty">No encontré ese lugar en el mapa abierto. Probá con otra calle o nombre exacto.</li>' + googleFallbackHtml(q.trim());
+    suggEl.hidden = false;
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  list.forEach(r=>{
+    const li = document.createElement('li');
+    li.tabIndex = 0;
+    li.innerHTML = `<span class="sugg-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="11" r="3"/></svg></span><span class="sugg-main"><span class="sugg-title"></span><span class="sugg-sub"></span></span>`;
+    li.querySelector('.sugg-title').textContent = r.title;
+    li.querySelector('.sugg-sub').textContent = r.sub || r.addr || 'Lugar';
+    const choose = ()=> setDestination(r);
+    li.onclick = choose;
+    li.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); choose(); } };
+    frag.appendChild(li);
+  });
+  suggEl.appendChild(frag);
+  suggEl.hidden = false;
+}
+async function searchAndShow(q){
+  const my = ++geoToken;
+  const list = await geocode(q);
+  if (my !== geoToken) return;
+  if ($('q').value.trim() !== q) return;
+  renderSuggestions(list, q);
+}
+function setDestination(place){
+  const lat = parseFloat(place.lat), lng = parseFloat(place.lng);
+  if (!isFinite(lat) || !isFinite(lng)) return;
+  dest = {lat, lng, name: place.title || place.addr || 'Lugar buscado'};
+  hideSuggestions();
+  $('q').value = dest.name;
+  $('q').blur();
+  updateDestBanner();
+  if (destMark) destMark.remove();
+  destMark = L.marker([lat,lng], {icon:destIcon}).addTo(map).bindPopup(destPopupHtml(), {maxWidth:260, closeButton:true});
+  destMark.on('click', ()=>{ if(destMark) destMark.setPopupContent(destPopupHtml()); });
+  render();
+  const nearest = D.map(p=>({p, d:dist(lat,lng,p.a,p.o)})).sort((a,b)=>a.d-b.d)[0];
+  if (nearest){
+    selected = nearest.p; refreshIcons();
+    document.querySelectorAll('#list li').forEach(li=> li.classList.toggle('selected', li.dataset.n===nearest.p.n));
+    const dTxt = nearest.d<1000 ? Math.round(nearest.d)+' m' : (nearest.d/1000).toFixed(1)+' km';
+    toast(`Más cercano: ${nearest.p.n} · ${dTxt}`);
+  }
+  map.flyTo([lat,lng], 16, {animate:true, duration:.6});
+}
+$('q').addEventListener('input', ()=>{
+  clearTimeout(debounce); debounce = setTimeout(render, 150);
+  clearTimeout(geoDebounce);
+  const v = $('q').value.trim();
+  if (v.length < 3){ hideSuggestions(); return; }
+  geoDebounce = setTimeout(()=> searchAndShow(v), 400);
+});
+$('q').addEventListener('keydown', async e=>{
+  if (e.key === 'Escape'){ hideSuggestions(); return; }
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const v = $('q').value.trim();
+  const first = suggEl.querySelector('li:not(.sugg-empty):not(.sugg-fallback)');
+  if (first) first.click();
+  else if (v.length >= 3){
+    const list = await geocode(v);
+    if (list.length) setDestination(list[0]);
+    else {
+      renderSuggestions([], v);
+      toast('No encontré ese lugar en el mapa abierto.');
+    }
+  }
+});
+document.addEventListener('click', e=>{
+  if (!e.target.closest('.searchwrap')) hideSuggestions();
+});
+map.on('click', hideSuggestions);
+$('clear').onclick = ()=>{ $('q').value=''; clearDestination(false); hideSuggestions(); $('q').focus(); };
 $('handle').onclick = ()=>{ const open = $('sheet').classList.toggle('open'); $('handle').setAttribute('aria-expanded', open); };
 document.querySelectorAll('.chip').forEach(ch=> ch.onclick = ()=>{
   document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
@@ -706,6 +864,7 @@ $('loc').onclick = ()=>{
     btn.classList.remove('loading');
     me = {lat: pos.coords.latitude, lng: pos.coords.longitude};
     try{ localStorage.setItem('motos.me', JSON.stringify(me)); }catch(e){}
+    if (dest){ dest = null; if (destMark){ destMark.remove(); destMark = null; } updateDestBanner(); }
     if (meMark) meMark.remove();
     meMark = L.marker([me.lat,me.lng], {icon: myIcon}).addTo(map);
     render();
